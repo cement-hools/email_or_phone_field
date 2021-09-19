@@ -1,3 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
-# Register your models here.
+from user.models import CustomUser, Statistic
+
+admin.site.register(CustomUser)
+admin.site.register(Statistic)
