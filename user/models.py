@@ -6,28 +6,29 @@ from user_stat import settings
 from .managers import UserManager
 
 
-class CustomUser(models.Model):
+class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField('ФИО', max_length=128)
 
     email = models.EmailField('email', unique=True, blank=True)
-    phone = models.PositiveIntegerField('телефон', unique=True, blank=True)
+    phone = models.PositiveIntegerField('телефон', unique=True, blank=True,
+                                        null=True)
 
-    date_of_birth = models.DateTimeField('дата рождения', blank=True,
-                                         null=True)
+    date_of_birth = models.DateField('дата рождения', blank=True, null=True)
 
     login = models.CharField('login', max_length=128, unique=True)
     password = models.CharField('password', max_length=128)
 
     date_joined = models.DateTimeField('registered', auto_now_add=True)
 
-    is_active = True
+    objects = UserManager()
 
     USERNAME_FIELD = 'login'
+    EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = []
 
-    class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'User'
+    @property
+    def is_staff(self):
+        return self.is_superuser
 
 
 class Status(models.TextChoices):
@@ -36,7 +37,7 @@ class Status(models.TextChoices):
 
 
 class Statistic(models.Model):
-    status = models.CharField(max_length=255, blank=True,)
+    status = models.CharField(max_length=255, blank=True, )
     text = models.CharField(max_length=255, blank=True)
     create_date = models.DateTimeField('', auto_now_add=True)
 

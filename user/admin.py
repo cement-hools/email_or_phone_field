@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from user.models import CustomUser, Statistic
+from user.models import User, Statistic
 
-admin.site.register(CustomUser)
+admin.site.register(User)
 admin.site.register(Statistic)
