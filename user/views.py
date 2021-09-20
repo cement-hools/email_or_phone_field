@@ -11,8 +11,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Statistic
-from .serializers import AddUserSerializer, StatisticSerializer, \
-    LoginSerializer
+from .serializers import (AddUserSerializer, StatisticSerializer,
+                          LoginSerializer)
 from .utils import make_random_password
 
 
@@ -40,7 +40,8 @@ def login_view(request, *args, **kwargs):
                 {'ok': f'пользователь {user.login} вошел в систему'},
                 status=status.HTTP_200_OK)
         return Response(
-            {'not found': f'пользователя {user_login} нет в системе'},
+            {'not found': f'пользователя login: {user_login}, нет в системе '
+                          f'или неправильный пароль'},
             status=status.HTTP_404_NOT_FOUND)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -49,18 +50,17 @@ def login_view(request, *args, **kwargs):
 def adduser(request, *args, **kwargs):
     password = make_random_password()
     password_hash = make_password(password)
-    print(request.data)
     serializer = AddUserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(password=password_hash)
         user_name = serializer.validated_data.get('name')
-        login = serializer.validated_data.get('login')
+        user_login = serializer.validated_data.get('login')
         Statistic.objects.create(
             status='HTTP_201_CREATED',
             text=f'Пользователь {user_name} успешно создан',
         )
         response = {
-            'login': login,
+            'login': user_login,
             'password': password,
         }
         return Response(response, status=status.HTTP_201_CREATED)

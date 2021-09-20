@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from user_stat import settings
@@ -30,6 +31,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_staff(self):
         return self.is_superuser
 
+    def clean(self):
+        super().clean()
+        phone = self.phone
+        email = self.email
+        if not (phone or email):
+            raise ValidationError('Не задан телефон или email')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
 
 class Status(models.TextChoices):
     TELEGRAM = "telegram"
@@ -37,7 +50,7 @@ class Status(models.TextChoices):
 
 
 class Statistic(models.Model):
-    status = models.CharField(max_length=255, blank=True, )
+    status = models.CharField(max_length=255, blank=True)
     text = models.CharField(max_length=255, blank=True)
     create_date = models.DateTimeField('', auto_now_add=True)
 
