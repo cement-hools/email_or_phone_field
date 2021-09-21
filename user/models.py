@@ -10,7 +10,7 @@ from .managers import UserManager
 class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField('ФИО', max_length=128)
 
-    email = models.EmailField('email', unique=True, blank=True)
+    email = models.EmailField('email', unique=True, blank=True, null=True)
     phone = models.PositiveIntegerField('телефон', unique=True, blank=True,
                                         null=True)
 
@@ -31,16 +31,16 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_staff(self):
         return self.is_superuser
 
-    def clean(self):
-        super().clean()
-        phone = self.phone
-        email = self.email
-        if not (phone or email):
-            raise ValidationError('Не задан телефон или email')
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
+    # def clean(self):
+    #     super().clean()
+    #     phone = self.phone
+    #     email = self.email
+    #     if not (phone or email):
+    #         raise ValidationError('Не задан телефон или email')
+    #
+    # def save(self, *args, **kwargs):
+    #     self.full_clean()
+    #     return super().save(*args, **kwargs)
 
 
 
@@ -55,7 +55,7 @@ class Statistic(models.Model):
     create_date = models.DateTimeField('', auto_now_add=True)
 
     class Meta:
-        ordering = ('create_date',)
+        ordering = ('-create_date',)
 
     def __str__(self):
         return f'{self.status}: {self.text}  {self.create_date.date()}'

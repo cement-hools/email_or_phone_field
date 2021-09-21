@@ -48,10 +48,11 @@ def login_view(request, *args, **kwargs):
 
 @api_view(['POST'])
 def adduser(request, *args, **kwargs):
-    password = make_random_password()
-    password_hash = make_password(password)
     serializer = AddUserSerializer(data=request.data)
     if serializer.is_valid():
+        print('valid')
+        password = make_random_password()
+        password_hash = make_password(password)
         serializer.save(password=password_hash)
         user_name = serializer.validated_data.get('name')
         user_login = serializer.validated_data.get('login')
@@ -89,7 +90,7 @@ def adduser(request, *args, **kwargs):
         status='HTTP_400_BAD_REQUEST',
         text=error_text,
     )
-
+    print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
