@@ -83,7 +83,7 @@ https://github.com/cement-hools/email_or_phone_field/badge.svg
     ```
     git clone https://github.com/cement-hools/email_or_phone_field
     ```
-2. Перейдите в директорию crud_company
+2. Перейдите в директорию email_or_phone_field
     ```
    cd email_or_phone_field
     ```
@@ -129,7 +129,7 @@ python manage.py test
     ```
     git clone https://github.com/cement-hools/email_or_phone_field
     ```
-2. Перейдите в директорию crud_company
+2. Перейдите в директорию email_or_phone_field
     ```
    cd email_or_phone_field
     ```
