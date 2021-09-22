@@ -1,7 +1,6 @@
 import csv
 
-import tablib as tablib
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -15,8 +14,9 @@ from .serializers import (AddUserSerializer, StatisticSerializer,
                           LoginSerializer)
 from .utils import make_random_password
 
+User = get_user_model()
 
-@api_view(['GET'])
+@api_view(['POST'])
 def logout_view(request, *args, **kwargs):
     if request.user.is_authenticated:
         user_login = request.user.login
@@ -50,7 +50,6 @@ def login_view(request, *args, **kwargs):
 def adduser(request, *args, **kwargs):
     serializer = AddUserSerializer(data=request.data)
     if serializer.is_valid():
-        print('valid')
         password = make_random_password()
         password_hash = make_password(password)
         serializer.save(password=password_hash)
@@ -65,7 +64,7 @@ def adduser(request, *args, **kwargs):
             'password': password,
         }
         return Response(response, status=status.HTTP_201_CREATED)
-    print(serializer.errors)
+    # print(serializer.errors)
     code = {
         'unique': 'Пользователь с таким полем уже существует',
         'required': 'Обязательное поле',
@@ -73,24 +72,24 @@ def adduser(request, *args, **kwargs):
     }
     error_dict = dict()
     for field, error in serializer.errors.items():
-        print(error[0], error[0].code)
+        # print(error[0], error[0].code)
         if error[0].code in error_dict.keys():
             error_dict[error[0].code].append(field)
         else:
             error_dict[error[0].code] = [field]
 
-    print(error_dict)
+    # print(error_dict)
     text_list = []
     for k, v in error_dict.items():
         text_list.append(f'{code.get(k)} ({", ".join(v)})')
-    print(text_list)
+    # print(text_list)
     error_text = ', '.join(text_list)
 
     Statistic.objects.create(
         status='HTTP_400_BAD_REQUEST',
         text=error_text,
     )
-    print(serializer.errors)
+    # print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -103,6 +102,7 @@ def statistic(request, *args, **kwargs):
 
 
 @api_view(['GET'])
+@permission_classes((IsAuthenticated,))
 def export_excel(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="stat.xls"'
@@ -119,6 +119,7 @@ def export_excel(request):
 
 
 @api_view(['GET'])
+@permission_classes((IsAuthenticated,))
 def export_txt(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="stat.txt"'

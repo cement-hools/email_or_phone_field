@@ -1,18 +1,20 @@
 from abc import ABC
 from django.utils.translation import gettext_lazy as _
 
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from .models import User, Statistic
+from .models import Statistic
+
+User = get_user_model()
 
 
 class AddUserSerializer(ModelSerializer):
     """Сериалайзер добавления пользователя."""
 
     date_of_birth = serializers.DateField(format="%d.%m.%Y",
-                                          input_formats=['%d.%m.%Y'])
+                                          input_formats=['%d.%m.%Y'], required=False)
 
     class Meta:
         model = User
@@ -47,15 +49,6 @@ class LoginSerializer(serializers.Serializer):  # noqa
     def validate(self, data):
         login = data.get('login')
         password = data.get('password')
-        email = data.get('email')
-        phone = data.get('phone')
-
-        print('$$$$', email, phone)
-
-        if not (email or phone):
-            raise serializers.ValidationError(
-                'An email or phone is required to log in.'
-            )
 
         if login is None:
             raise serializers.ValidationError(
