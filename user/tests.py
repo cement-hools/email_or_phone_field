@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
+from user.models import Statistic
+
 User = get_user_model()
 
 
@@ -243,6 +245,27 @@ class UserTestCase(APITestCase):
         code = response.data.get('login')[0].code
         self.assertEqual('required', code, 'Неверный код ошибки')
 
+    def test_registration_invalid_data_fields(self):
+        """Регистрация пользователя все рекомендованные поля
+        c неверным форматом данных."""
+
+        url = reverse('adduser')
+        data = {
+            "name": "Sekachev Maxim Sergeevich",
+            "date_of_birth": 1988,
+            "phone": 9555666000.12,
+            "email": "cementya.ru",
+            "login": "cement"
+        }
+
+        response = self.client_not_auth.post(url, data=data)
+
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code,
+                         'Неверный статус ответа')
+        self.assertIn('date_of_birth', response.data, 'Поля нет в ответе')
+        self.assertIn('phone', response.data, 'Поля нет в ответе')
+        self.assertIn('email', response.data, 'Поля нет в ответе')
+
     def test_login_user(self):
         """Аутентификация пользователя."""
         url = reverse('login')
@@ -299,3 +322,36 @@ class UserTestCase(APITestCase):
         self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code,
                          'Неверный статус ответа')
 
+    def test_statistic_non_auth_user(self):
+        """Доступ к статистике неавторизованным пользователем."""
+        url = reverse('statistic')
+
+        response = self.client_not_auth.get(url)
+
+        self.assertEqual(status.HTTP_401_UNAUTHORIZED, response.status_code,
+                         'Неверный статус ответа')
+
+    def test_statistic_auth_user(self):
+        """Доступ к статистике авторизованным пользователем."""
+        Statistic.objects.create(
+            status='HTTP_201_CREATED',
+            text=f'Пользователь Maxim успешно создан',
+        )
+
+        url = reverse('statistic')
+        self.client.force_login(user=self.user_1)
+
+        Statistic.objects.create(
+            status='HTTP_400_BAD_REQUEST',
+            text='all baaaad',
+        )
+
+        response = self.client.get(url)
+
+        self.assertEqual(status.HTTP_200_OK, response.status_code,
+                         'Неверный статус ответа')
+        self.assertEqual(2, len(response.data), 'Объекты в выдаче')
+        self.assertEqual('all baaaad', response.data[0].get('text'),
+                         'Объекты в выдаче')
+        self.assertEqual('HTTP_201_CREATED', response.data[1].get('status'),
+                         'Объекты в выдаче')
