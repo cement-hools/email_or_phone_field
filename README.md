@@ -1,3 +1,9 @@
+<!---
+https://github.com/cement-hools/email_or_phone_field/badge.svg
+--->
+![example workflow](https://github.com/cement-hools/email_or_phone_field/actions/workflows/project_test.yml/badge.svg)
+### Используется GitHub Actions для автоматического тестирования при изменении кода в репозитории
+
 # email_or_phone_field
 Разработать отказоустойчивый мини сервис, который принимает POST запросы 
 в формате JSON с данными о пользователях и создаёт их в БД postgres 
