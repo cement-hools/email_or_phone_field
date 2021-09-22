@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env
+      - .env
   web:
     build: .
     container_name: web
@@ -26,11 +26,11 @@ services:
     depends_on:
       - db
     env_file:
-      - ./.env
+      - .env
   nginx:
     image: nginx:1.19-alpine
     volumes:
-      - static_volume:/code/static/
+      - static_volume:/static/
       - nginx_conf:/etc/nginx/conf.d/
     ports:
       - 80:80

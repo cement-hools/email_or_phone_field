@@ -1,7 +1,5 @@
-from abc import ABC
-from django.utils.translation import gettext_lazy as _
-
 from django.contrib.auth import authenticate, get_user_model
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
@@ -13,8 +11,11 @@ User = get_user_model()
 class AddUserSerializer(ModelSerializer):
     """Сериалайзер добавления пользователя."""
 
-    date_of_birth = serializers.DateField(format="%d.%m.%Y",
-                                          input_formats=['%d.%m.%Y'], required=False)
+    date_of_birth = serializers.DateField(
+        format="%d.%m.%Y",
+        input_formats=['%d.%m.%Y'],
+        required=False
+    )
 
     class Meta:
         model = User
@@ -43,6 +44,7 @@ class StatisticSerializer(ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):  # noqa
+    """Сериалайзер аутентификации пользователя."""
     login = serializers.CharField(max_length=128, write_only=True)
     password = serializers.CharField(max_length=128, write_only=True)
 

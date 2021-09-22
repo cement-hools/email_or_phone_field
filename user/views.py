@@ -1,9 +1,8 @@
 import csv
 
-from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.hashers import make_password
 from django.http import HttpResponse
-from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -12,12 +11,15 @@ from rest_framework.response import Response
 from .models import Statistic
 from .serializers import (AddUserSerializer, StatisticSerializer,
                           LoginSerializer)
-from .utils import make_random_password
+from .utils import (make_random_password, statistic_create_user,
+                    statistic_not_create_user)
 
 User = get_user_model()
 
+
 @api_view(['POST'])
 def logout_view(request, *args, **kwargs):
+    """Выйти из системы."""
     if request.user.is_authenticated:
         user_login = request.user.login
         logout(request)
@@ -30,6 +32,7 @@ def logout_view(request, *args, **kwargs):
 
 @api_view(['POST'])
 def login_view(request, *args, **kwargs):
+    """Войти в систему."""
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
         user_login = request.data.get('login')
@@ -48,6 +51,7 @@ def login_view(request, *args, **kwargs):
 
 @api_view(['POST'])
 def adduser(request, *args, **kwargs):
+    """Создать пользователя."""
     serializer = AddUserSerializer(data=request.data)
     if serializer.is_valid():
         password = make_random_password()
@@ -55,47 +59,24 @@ def adduser(request, *args, **kwargs):
         serializer.save(password=password_hash)
         user_name = serializer.validated_data.get('name')
         user_login = serializer.validated_data.get('login')
-        Statistic.objects.create(
-            status='HTTP_201_CREATED',
-            text=f'Пользователь {user_name} успешно создан',
-        )
+
+        statistic_create_user(user_name)
+
         response = {
             'login': user_login,
             'password': password,
         }
         return Response(response, status=status.HTTP_201_CREATED)
-    # print(serializer.errors)
-    code = {
-        'unique': 'Пользователь с таким полем уже существует',
-        'required': 'Обязательное поле',
-        'invalid': 'Неверное значение',
-    }
-    error_dict = dict()
-    for field, error in serializer.errors.items():
-        # print(error[0], error[0].code)
-        if error[0].code in error_dict.keys():
-            error_dict[error[0].code].append(field)
-        else:
-            error_dict[error[0].code] = [field]
 
-    # print(error_dict)
-    text_list = []
-    for k, v in error_dict.items():
-        text_list.append(f'{code.get(k)} ({", ".join(v)})')
-    # print(text_list)
-    error_text = ', '.join(text_list)
+    statistic_not_create_user(serializer.errors)
 
-    Statistic.objects.create(
-        status='HTTP_400_BAD_REQUEST',
-        text=error_text,
-    )
-    # print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def statistic(request, *args, **kwargs):
+    """Статистика обращений к useradd/."""
     statistic_set = Statistic.objects.all()
     serializer = StatisticSerializer(instance=statistic_set, many=True)
     return Response(serializer.data)
@@ -104,6 +85,7 @@ def statistic(request, *args, **kwargs):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def export_excel(request):
+    """Экспорт статистики в xls."""
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="stat.xls"'
 
@@ -121,6 +103,7 @@ def export_excel(request):
 @api_view(['GET'])
 @permission_classes((IsAuthenticated,))
 def export_txt(request):
+    """Экспорт статистики в txt."""
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="stat.txt"'
 
